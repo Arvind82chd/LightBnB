@@ -98,17 +98,65 @@ exports.getAllReservations = getAllReservations;
 
 /**
  * Get all properties.
- * @param {{}} options An object containing query options.
+ * @param {{city: string, owner_id: number, minimum_price_per_night: number, maximum_price_per_night: number, minimum_rating: number }} options An object containing query options.
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = (options, limit = 10) => {
+  let queryParams = [];
+  const queryString = `SELECT properties.*, AVG(property_reviews.rating) AS average_rating FROM properties
+  JOIN property_reviews ON property_id = properties.id`;
+
+  if (options.city) {
+    queryParams.push(`%${options.city}%`);
+    queryString += `WHERE city LIKE $${queryParams.length}`;
+  }
+
+  else if (options.owner_id) {
+    queryParams.push(`${options.owner_id}`);
+    queryString += `AND WHERE owner_id = $${queryParams.length}`;
+  }
+
+  else if (options.minimum_price_per_night) {
+    queryParams.push(`${options.minimum_price_per_night}`);
+    queryString =+ `AND WHERE cost_per_night > $${queryParams.length}`
+  }
+
+  else if (options.maximum_price_per_night) {
+    queryParams.push(`${options.maximum_price_per_night}`);
+    queryString =+ `AND WHERE cost_per_night < $${queryParams.length}`
+  }
+
+  else if (options.minimum_rating) {
+    queryParams.push(`${options.minimum_rating}`);
+    queryString =+ `AND WHERE average_rating >= $${queryParams.length}`
+  } 
+
+  else {
+    next()
+  }
+
+  queryParams.push(limit);
+  queryString += `
+  GROUP BY properties.id
+  ORDER BY cost_per_night
+  LIMIT $${queryParams.length}`;
+  
+  console.log(queryString, queryParams);
+
   return pool
-  .query(`SELECT * FROM properties LIMIT $1`, [limit])
+  .query(queryString, queryParams)
   .then(res => res.rows)
   .catch(err => {
     console.error('query error', err.message);
   });
+
+  // return pool
+  // .query(`SELECT * FROM properties LIMIT $1`, [limit])
+  // .then(res => res.rows)
+  // .catch(err => {
+  //   console.error('query error', err.message);
+  // });
 
   // const queryString = `SELECT *, $1 FROM properties LIMIT $2`;
   // const values = [`properties.${options}`, limit]
