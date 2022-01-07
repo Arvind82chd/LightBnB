@@ -22,26 +22,12 @@ const pool = new Pool ({
 const getUserWithEmail = function(email) {
   const queryString = `SELECT * FROM users WHERE email LIKE $1`;
   const values = [email];
-  // return pool
-  // .query(queryString, values)
-  // .then(results => console.log(results.rows[0]))
-  // .catch(err => console.error('query error', err.message))
 
   return pool
   .query(queryString, values)
   .then(res => res.rows[0])
   .catch(e => console.error(e.stack))
 
-  // let user;
-  // for (const userId in users) {
-  //   user = users[userId];
-  //   if (user.email.toLowerCase() === email.toLowerCase()) {
-  //     break;
-  //   } else {
-  //     user = null;
-  //   }
-  // }
-  // return Promise.resolve(user);
 }
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -77,10 +63,7 @@ const addUser =  function(user) {
   .query(queryString, values)
   .then(res => res.rows[0])
   .catch(e => console.error(e.message))
-  // const userId = Object.keys(users).length + 1;
-  // user.id = userId;
-  // users[userId] = user;
-  // return Promise.resolve(user);
+ 
 }
 exports.addUser = addUser;
 
@@ -97,7 +80,6 @@ const getAllReservations = function(guest_id, limit = 10) {
   JOIN users ON guest_id = users.id
   JOIN properties
   ON reservations.property_id = properties.id
-  
   WHERE reservations.guest_id = $1
   AND reservations.end_date < Now()::date
   GROUP BY properties.id, reservations.id
@@ -108,7 +90,7 @@ const getAllReservations = function(guest_id, limit = 10) {
   .query(queryString, [guest_id, limit])
   .then(res => res.rows)
   .catch(e => console.error(e.message))
-//  return getAllProperties(null, 2);
+
 }
 exports.getAllReservations = getAllReservations;
 
@@ -137,13 +119,6 @@ const getAllProperties = (options, limit = 10) => {
   //   console.error('query error', err.message);
   // });
 
- 
- 
-  // const limitedProperties = {};
-  // for (let i = 1; i <= limit; i++) {
-  //   limitedProperties[i] = properties[i];
-  // }
-  // return Promise.resolve(limitedProperties);
 };
 exports.getAllProperties = getAllProperties;
 
