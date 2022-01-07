@@ -11,7 +11,7 @@ const pool = new Pool ({
   port: '5432'
 });
 
-pool.connect().then()
+//pool.connect().then()
 
 /// Users
 /**
@@ -92,7 +92,23 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  const queryString = `SELECT reservations.*, properties.*
+  FROM reservations
+  JOIN users ON guest_id = users.id
+  JOIN properties
+  ON reservations.property_id = properties.id
+  
+  WHERE reservations.guest_id = $1
+  AND reservations.end_date < Now()::date
+  GROUP BY properties.id, reservations.id
+  ORDER BY reservations.start_date
+  LIMIT $2`;
+
+  return pool
+  .query(queryString, [guest_id, limit])
+  .then(res => res.rows)
+  .catch(e => console.error(e.message))
+//  return getAllProperties(null, 2);
 }
 exports.getAllReservations = getAllReservations;
 
